@@ -64,22 +64,26 @@ func (configField *FieldConfig) Ceil(tabField CrontabField, t time.Time) time.Ti
 	for j := 0; j < tabField.Len(); j++ {
 
 		var t2 time.Time
-		if configField.dateIndexFn(t) > tabField.GetConstraint(j).GetMax() {
-			// number is after the range o ctd... set cdt to beginning of next period and loop around
-			t2 = configField.NormalizeMax(tabField.GetConstraint(j), t)
-		} else if configField.dateIndexFn(t) < tabField.GetConstraint(j).GetMin() {
-			// number is before the range o ctd... set cdt to beginning of this period and loop around
-			t2 = configField.NormalizeMin(tabField.GetConstraint(j), t)
-		} else {
-			// we have a value within range, now see if it matches with
-			// the current step value
-			t2 = configField.NormalizeInRange(tabField.GetConstraint(j), t)
+		t3 := t
+		for t3 != t2 {
+			t2 = t3
+			if configField.dateIndexFn(t2) > tabField.GetConstraint(j).GetMax() {
+				// number is after the range o ctd... set cdt to beginning of next period and loop around
+				t3 = configField.NormalizeMax(tabField.GetConstraint(j), t2)
+			} else if configField.dateIndexFn(t) < tabField.GetConstraint(j).GetMin() {
+				// number is before the range o ctd... set cdt to beginning of this period and loop around
+				t3 = configField.NormalizeMin(tabField.GetConstraint(j), t2)
+			} else {
+				// we have a value within range, now see if it matches with
+				// the current step value
+				t3 = configField.NormalizeInRange(tabField.GetConstraint(j), t2)
+			}
 		}
 
 		// first constraint is a special case.  pick the satisfied constraint closest
 		// to the current time
-		if j == 0 || t2.Before(t1) {
-			t1 = t2
+		if j == 0 || t3.Before(t1) {
+			t1 = t3
 		}
 
 	}

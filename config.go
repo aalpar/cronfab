@@ -45,9 +45,13 @@ func (cc *CrontabConfig) Next(ctd CrontabLine, t time.Time) (time.Time, error) {
 
 		// go through the constrains of this field in the specification
 		t2 := configField.Ceil(tabField, t1)
-		// check that all the fields for the same oder are compatible.
+		// check that all the fields for the same order are compatible.
 		satisfactory := true
-		for j := i - 1; j >= 0 && cc.GetFieldAtRank(j).unit == configField.unit; j-- {
+		for j := i - 1; j >= 0; j-- {
+			unitField := cc.GetFieldAtRank(j)
+			if unitField.unit != configField.unit {
+				break
+			}
 			if !cc.GetFieldAtRank(j).IsSatisfactory(cc.GetCrontabFieldAtRank(ctd, j), t2) {
 				satisfactory = false
 			}

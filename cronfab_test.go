@@ -3,7 +3,6 @@ package cronfab
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -128,12 +127,12 @@ func TestNext(t *testing.T) {
 		{
 			in:  "* * * * thur",
 			add: 1 * time.Minute,
-			out: 1*time.Minute + (4 * (time.Hour * 24)),
+			out: 2*time.Minute + (4 * (time.Hour * 24)),
 		},
 		{
 			in:  "* * * * sun",
 			add: 1 * time.Minute,
-			out: 1 * time.Minute,
+			out: 2 * time.Minute,
 		},
 		{
 			in:  "5 0 * * sun",
@@ -152,8 +151,8 @@ func TestNext(t *testing.T) {
 		},
 	}
 
-	for i, tcase := range tcases {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+	for _, tcase := range tcases {
+		t.Run(tcase.in, func(t *testing.T) {
 			cf, err := DefaultContabConfig.ParseCronTab(tcase.in)
 			if err != nil {
 				t.Fatal("err: ", err)
