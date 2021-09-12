@@ -14,12 +14,7 @@ type FieldConfig struct {
 	getIndex   func(time.Time) int
 }
 
-// Ceil performs a ceiling function for a calendar unit within the constrains of the crontab
-func (configField FieldConfig) Trunc(t time.Time) time.Time {
-	return configField.unit.Add(t, -configField.getIndex(t))
-}
-
-// Ceil performs a ceiling function for a calendar unit within the constrains of the crontab
+// Ceil performs a ceiling function for a calendar unit within the constraints of the crontab
 func (configField FieldConfig) Ceil(tabField CrontabField, t time.Time) (time.Time, bool) {
 	x0 := configField.getIndex(t)
 	x1, roll := tabField.Ceil(x0)

@@ -96,7 +96,7 @@ func (DayUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
-// WeekUnit units in days
+// WeekOfMonth units in week in month ordinal
 type WeekOfMonth struct{}
 
 func (WeekOfMonth) String() string {
@@ -258,7 +258,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		min:  1,
 		max:  5,
 		getIndex: func(t time.Time) int {
-			q := (t.Day() + (6 - int(t.Weekday())))
+			q := t.Day() + (6 - int(t.Weekday()))
 			return (q / 7) + 1
 		},
 	},
