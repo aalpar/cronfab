@@ -112,22 +112,23 @@ func (cc CrontabConfig) Len() int {
 	return len(cc.Fields)
 }
 
+// lookupNameIndex lookup index of s in ss
 func lookupNameIndex(ss []string, s string) int {
-	if len(s) < 3 {
-		return -1
-	}
+	q := -1
+	// apples to apples
 	s = strings.ToLower(s)
 	for i := range ss {
-		found := true
-		for j := 0; j < len(ss[i]) && j < len(s); j++ {
-			if ss[i][j] != s[j] {
-				found = false
-				break
-			}
-		}
-		if found {
+		// go through all the names looking for a prefix match
+		if s == ss[i] {
+			// exact matches always result in an index
 			return i
+		} else if strings.HasPrefix(ss[i], s) {
+			// unambiguous prefix matches result in an index
+			if q >= 0 {
+				return -1
+			}
+			q = i
 		}
 	}
-	return -1
+	return q
 }

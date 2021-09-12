@@ -24,6 +24,7 @@ func (cc CrontabConstraint) GetStep() int {
 	return cc[2]
 }
 
+// Ceil return the current or next greater value that satisfies the constraint.
 func (cc CrontabConstraint) Ceil(x int) (int, bool) {
 	if x < cc.GetMin() {
 		return cc.GetMin(), false

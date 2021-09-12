@@ -1,7 +1,6 @@
 package cronfab
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -62,7 +61,7 @@ func TestParseCrontab(t *testing.T) {
 
 		tcase := tcases[i]
 
-		t.Run(fmt.Sprintf(tcase.in), func(t *testing.T) {
+		t.Run(tcase.in, func(t *testing.T) {
 			markers, err := DefaultContabConfig.ParseCronTab(tcase.in)
 			if err != nil && tcase.err != nil {
 				if !reflect.DeepEqual(err, tcase.err) {
@@ -74,6 +73,53 @@ func TestParseCrontab(t *testing.T) {
 				if !reflect.DeepEqual(markers, CrontabLine(tcase.out)) {
 					t.Errorf("unexpected value: %v != %v", markers, tcase.out)
 				}
+			}
+		})
+
+	}
+
+}
+
+func TestNameIndex(t *testing.T) {
+	tcases := []struct {
+		in  string
+		out int
+		err error
+	}{
+		{
+			in:  "*",
+			out: -1,
+		},
+		{
+			in:  "o",
+			out: 1,
+		},
+		{
+			in:  "z",
+			out: 0,
+		},
+		{
+			in:  "four",
+			out: 4,
+		},
+		{
+			in:  "fourteen",
+			out: 9,
+		},
+		{
+			in:  "fourth",
+			out: -1,
+		},
+	}
+	stringSet := []string{"zero", "one", "two", "three", "four", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen"}
+	for i := range tcases {
+
+		tcase := tcases[i]
+
+		t.Run(tcase.in, func(t *testing.T) {
+			out := lookupNameIndex(stringSet, tcase.in)
+			if out != tcase.out {
+				t.Errorf("unexpected value: %v != %v", out, tcase.out)
 			}
 		})
 
