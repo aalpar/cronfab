@@ -132,7 +132,7 @@ func (YearUnit) Add(t time.Time, n int) time.Time {
 
 func (YearUnit) Less(u Unit) bool {
 	switch u.(type) {
-	case SecondUnit, MinuteUnit, HourUnit, DayUnit, YearUnit:
+	case SecondUnit, MinuteUnit, HourUnit, DayUnit, MonthUnit, YearUnit:
 		return false
 	}
 	return true
