@@ -31,33 +31,33 @@ func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 	return q
 }
 
+// Next return the next time after n as specified in the CrontabLine
 func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 	unitsRank := cc.Units
-	k := 0
-	i := 0
-	u := unitsRank[k]
+	u := unitsRank[0]
 	n = u.Add(n, 1)
-	roll := false
+	var roll bool
 	var newn time.Time
+	var k int
 	for k < len(unitsRank) {
-		u = unitsRank[k]
-		fieldsForUnit := cc.FieldUnits[u.String()]
-		for _, i = range fieldsForUnit {
-			newn, roll = cc.Fields[i].Ceil(ctl[i], n)
-			if newn.After(n) || roll {
+		for k = 0; k < len(unitsRank); k++ {
+			u = unitsRank[k]
+			fieldsForUnit := cc.FieldUnits[u.String()]
+			for _, i := range fieldsForUnit {
+				newn, roll = cc.Fields[i].Ceil(ctl[i], n)
+				if newn.After(n) || roll {
+					break
+				}
+			}
+			if roll {
+				newn = unitsRank[k].Add(newn, 1)
+				newn = unitsRank[k].Trunc(newn)
+			}
+			if !newn.Equal(n) || roll {
 				break
 			}
 		}
-		if roll {
-			newn = unitsRank[k].Add(newn, 1)
-			newn = unitsRank[k].Trunc(newn)
-		}
-		if newn.After(n) || roll {
-			k = 0
-			n = newn
-		} else {
-			k++
-		}
+		n = newn
 	}
 	return n, nil
 }

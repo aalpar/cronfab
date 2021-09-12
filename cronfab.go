@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// SecondUnit units in seconds
 type SecondUnit struct{}
 
 func (SecondUnit) String() string {
@@ -26,6 +27,7 @@ func (SecondUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, t.Location())
 }
 
+// MinuteUnit units in minutes
 type MinuteUnit struct{}
 
 func (MinuteUnit) String() string {
@@ -48,6 +50,7 @@ func (MinuteUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
 }
 
+// HourUnit units in hours
 type HourUnit struct{}
 
 func (HourUnit) String() string {
@@ -70,7 +73,7 @@ func (HourUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, t.Location())
 }
 
-// DayOfMonth
+// DayUnit units in days
 type DayUnit struct{}
 
 func (DayUnit) String() string {
@@ -93,6 +96,7 @@ func (DayUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
+// MonthUnit units in months
 type MonthUnit struct{}
 
 func (MonthUnit) String() string {
@@ -115,6 +119,7 @@ func (MonthUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), 0, 0, 0, 0, 0, t.Location())
 }
 
+// YearUnit units in years
 type YearUnit struct{}
 
 func (YearUnit) String() string {
