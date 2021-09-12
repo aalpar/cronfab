@@ -1,5 +1,5 @@
 Cronfab
--------
+=======
 
 Cronfab is a crontab time-and-date specification parser and processor with a configurable calendar.
 
@@ -15,7 +15,7 @@ Parsers for classic 6-field (year, month, day of month, day of week, hour of day
 Examples and Tests are the best source of documentation.
 
 Example
-=======
+-------
 
 The example below outputs the parsed crontab entry and then runs for 20s, producing output every 5s.  The example demonstrates generating timeseries for a parsed crontab.
 
