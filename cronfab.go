@@ -96,6 +96,29 @@ func (DayUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
+// WeekUnit units in days
+type WeekOfMonth struct{}
+
+func (WeekOfMonth) String() string {
+	return "week"
+}
+
+func (WeekOfMonth) Add(t time.Time, n int) time.Time {
+	return t.AddDate(0, 0, n*7)
+}
+
+func (WeekOfMonth) Less(u Unit) bool {
+	switch u.(type) {
+	case SecondUnit, MinuteUnit, HourUnit, DayUnit, WeekOfMonth:
+		return false
+	}
+	return true
+}
+
+func (WeekOfMonth) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day()-int(t.Weekday()), 0, 0, 0, 0, t.Location())
+}
+
 // MonthUnit units in months
 type MonthUnit struct{}
 
@@ -109,7 +132,7 @@ func (MonthUnit) Add(t time.Time, n int) time.Time {
 
 func (MonthUnit) Less(u Unit) bool {
 	switch u.(type) {
-	case SecondUnit, MinuteUnit, HourUnit, DayUnit, MonthUnit:
+	case SecondUnit, MinuteUnit, HourUnit, DayUnit, WeekOfMonth, MonthUnit:
 		return false
 	}
 	return true
@@ -132,7 +155,7 @@ func (YearUnit) Add(t time.Time, n int) time.Time {
 
 func (YearUnit) Less(u Unit) bool {
 	switch u.(type) {
-	case SecondUnit, MinuteUnit, HourUnit, DayUnit, MonthUnit, YearUnit:
+	case SecondUnit, MinuteUnit, HourUnit, DayUnit, WeekOfMonth, MonthUnit, YearUnit:
 		return false
 	}
 	return true
@@ -227,6 +250,16 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		max:  31,
 		getIndex: func(t time.Time) int {
 			return t.Day()
+		},
+	},
+	{
+		unit: WeekOfMonth{},
+		name: "week of month",
+		min:  1,
+		max:  5,
+		getIndex: func(t time.Time) int {
+			q := (t.Day() + (6 - int(t.Weekday())))
+			return (q / 7) + 1
 		},
 	},
 	{

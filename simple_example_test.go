@@ -10,7 +10,7 @@ import (
 
 // crontab event at every 5 second interval
 func ExampleEveryFiveSeconds() {
-	markers, err := cronfab.SecondContabConfig.ParseCronTab("*/5 * * * * *")
+	markers, err := cronfab.SecondContabConfig.ParseCronTab("*/5 * * * * * *")
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 	}
@@ -28,5 +28,5 @@ func ExampleEveryFiveSeconds() {
 		fmt.Fprintf(os.Stderr, "time: %v\n", time.Now())
 	}
 
-	// Output: 0-59/5 0-59/1 0-23/1 1-31/1 1-12/1 0-6/1
+	// Output: 0-59/5 0-59/1 0-23/1 1-31/1 1-5/1 1-12/1 0-6/1
 }

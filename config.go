@@ -45,7 +45,7 @@ func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 			fieldsForUnit := cc.FieldUnits[u.String()]
 			for _, i := range fieldsForUnit {
 				newn, roll = cc.Fields[i].Ceil(ctl[i], n)
-				if newn.After(n) || roll {
+				if !newn.Equal(n) || roll {
 					break
 				}
 			}
