@@ -10,10 +10,6 @@ func (SecondUnit) String() string {
 	return "second"
 }
 
-func (SecondUnit) Trunc(t time.Time) time.Time {
-	return t.Round(time.Second)
-}
-
 func (SecondUnit) Add(t time.Time, n int) time.Time {
 	return t.Add(time.Duration(n) * time.Second)
 }
@@ -26,14 +22,14 @@ func (SecondUnit) Less(u Unit) bool {
 	return true
 }
 
+func (SecondUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, t.Location())
+}
+
 type MinuteUnit struct{}
 
 func (MinuteUnit) String() string {
 	return "minute"
-}
-
-func (MinuteUnit) Trunc(t time.Time) time.Time {
-	return t.Truncate(time.Minute)
 }
 
 func (MinuteUnit) Add(t time.Time, n int) time.Time {
@@ -48,14 +44,14 @@ func (MinuteUnit) Less(u Unit) bool {
 	return true
 }
 
+func (MinuteUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), 0, 0, t.Location())
+}
+
 type HourUnit struct{}
 
 func (HourUnit) String() string {
 	return "hour"
-}
-
-func (HourUnit) Trunc(t time.Time) time.Time {
-	return t.Truncate(time.Hour)
 }
 
 func (x HourUnit) Less(u Unit) bool {
@@ -70,14 +66,15 @@ func (HourUnit) Add(t time.Time, n int) time.Time {
 	return t.Add(time.Duration(n) * time.Hour)
 }
 
+func (HourUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, t.Location())
+}
+
+// DayOfMonth
 type DayUnit struct{}
 
 func (DayUnit) String() string {
 	return "day"
-}
-
-func (DayUnit) Trunc(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }
 
 func (DayUnit) Add(t time.Time, n int) time.Time {
@@ -92,14 +89,14 @@ func (DayUnit) Less(u Unit) bool {
 	return true
 }
 
+func (DayUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
 type MonthUnit struct{}
 
 func (MonthUnit) String() string {
 	return "month"
-}
-
-func (MonthUnit) Trunc(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), 0, 0, 0, 0, 0, t.Location())
 }
 
 func (MonthUnit) Add(t time.Time, n int) time.Time {
@@ -114,6 +111,10 @@ func (MonthUnit) Less(u Unit) bool {
 	return true
 }
 
+func (MonthUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 0, 0, 0, 0, 0, t.Location())
+}
+
 type YearUnit struct{}
 
 func (YearUnit) String() string {
@@ -124,10 +125,6 @@ func (YearUnit) Add(t time.Time, n int) time.Time {
 	return t.AddDate(n, 0, 0)
 }
 
-func (YearUnit) Trunc(t time.Time) time.Time {
-	return time.Date(t.Year(), 0, 0, 0, 0, 0, 0, t.Location())
-}
-
 func (YearUnit) Less(u Unit) bool {
 	switch u.(type) {
 	case SecondUnit, MinuteUnit, HourUnit, DayUnit, YearUnit:
@@ -136,13 +133,17 @@ func (YearUnit) Less(u Unit) bool {
 	return true
 }
 
+func (YearUnit) Trunc(t time.Time) time.Time {
+	return time.Date(t.Year(), 0, 0, 0, 0, 0, 0, t.Location())
+}
+
 var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
 	{
 		unit: MinuteUnit{},
 		name: "minute",
 		min:  0,
 		max:  59,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Minute()
 		},
 	},
@@ -151,7 +152,7 @@ var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "hour",
 		min:  0,
 		max:  23,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Hour()
 		},
 	},
@@ -160,7 +161,7 @@ var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "day of month",
 		min:  1,
 		max:  31,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Day()
 		},
 	},
@@ -170,7 +171,7 @@ var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
 		rangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
 		min:        1,
 		max:        12,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return int(t.Month())
 		},
 	},
@@ -180,7 +181,7 @@ var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
 		rangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
 		min:        0,
 		max:        6,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return int(t.Weekday())
 		},
 	},
@@ -192,7 +193,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "second",
 		min:  0,
 		max:  59,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Second()
 		},
 	},
@@ -201,7 +202,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "minute",
 		min:  0,
 		max:  59,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Minute()
 		},
 	},
@@ -210,7 +211,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "hour",
 		min:  0,
 		max:  23,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Hour()
 		},
 	},
@@ -219,7 +220,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		name: "day of month",
 		min:  1,
 		max:  31,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return t.Day()
 		},
 	},
@@ -229,7 +230,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		rangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
 		min:        1,
 		max:        12,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return int(t.Month())
 		},
 	},
@@ -239,7 +240,7 @@ var SecondContabConfig = NewCrontabConfig([]FieldConfig{
 		rangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
 		min:        0,
 		max:        6,
-		dateIndexFn: func(t time.Time) int {
+		getIndex: func(t time.Time) int {
 			return int(t.Weekday())
 		},
 	},

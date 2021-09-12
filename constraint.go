@@ -23,3 +23,22 @@ func (cc CrontabConstraint) GetMax() int {
 func (cc CrontabConstraint) GetStep() int {
 	return cc[2]
 }
+
+func (cc CrontabConstraint) Ceil(x int) (int, bool) {
+	if x < cc.GetMin() {
+		return cc.GetMin(), false
+	}
+	if x > cc.GetMax() {
+		return cc.GetMin(), true
+	}
+	rem := (x - cc.GetMin()) % cc.GetStep()
+	if x >= cc.GetMin() && x <= cc.GetMax() && rem == 0 {
+		return x, false
+	}
+	x0 := x + (cc.GetStep() - rem)
+	if x0 > cc.GetMax() {
+		return cc.GetMin(), true
+	} else {
+		return x0, false
+	}
+}

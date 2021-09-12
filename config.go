@@ -1,7 +1,6 @@
 package cronfab
 
 import (
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -9,60 +8,58 @@ import (
 
 // CrontabConfig models the possible time specifications for a crontab entry
 type CrontabConfig struct {
-	Fields    []FieldConfig
-	fieldRank []int
+	Fields     []FieldConfig
+	FieldUnits map[string][]int
+	Units      []Unit
 }
 
 // NewCrontabConfig return a new crontab config for the supplied filed configs
 func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 	q := &CrontabConfig{
-		Fields:    fields,
-		fieldRank: []int{},
+		Fields:     fields,
+		FieldUnits: map[string][]int{},
 	}
 	for i := 0; i < len(q.Fields); i++ {
-		q.fieldRank = append(q.fieldRank, i)
+		f := fields[i]
+		u := f.unit
+		q.Units = append(q.Units, u)
+		SortUnits(q.Units)
+		unm := u.String()
+		q.FieldUnits[unm] = append(q.FieldUnits[unm], i)
 	}
 	// fields are sorted in unit order
-	sort.Sort(q)
 	return q
 }
 
-// Next return the next time
-func (cc *CrontabConfig) Next(ctd CrontabLine, t time.Time) (time.Time, error) {
-	if len(cc.Fields) == 0 {
-		return t, nil
-	}
-
-	// truncate time to the lowest unit
-	t = cc.Fields[0].unit.Trunc(t)
-	t = cc.Fields[0].unit.Add(t, 1)
-
-	// go through all the fields in the specification (which should match the number of fields in the configuration)
-	t1 := t
-	for i := 0; i < len(ctd); i++ {
-		tabField := cc.GetCrontabFieldAtRank(ctd, i)
-		configField := cc.GetFieldAtRank(i)
-
-		// go through the constrains of this field in the specification
-		t2 := configField.Ceil(tabField, t1)
-		// check that all the fields for the same order are compatible.
-		satisfactory := true
-		for j := i - 1; j >= 0; j-- {
-			unitField := cc.GetFieldAtRank(j)
-			if unitField.unit != configField.unit {
+func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
+	unitsRank := cc.Units
+	k := 0
+	i := 0
+	u := unitsRank[k]
+	n = u.Add(n, 1)
+	roll := false
+	var newn time.Time
+	for k < len(unitsRank) {
+		u = unitsRank[k]
+		fieldsForUnit := cc.FieldUnits[u.String()]
+		for _, i = range fieldsForUnit {
+			newn, roll = cc.Fields[i].Ceil(ctl[i], n)
+			if newn.After(n) || roll {
 				break
 			}
-			if !cc.GetFieldAtRank(j).IsSatisfactory(cc.GetCrontabFieldAtRank(ctd, j), t2) {
-				satisfactory = false
-			}
 		}
-		if satisfactory {
-			t1 = t2
+		if roll {
+			newn = unitsRank[k].Add(newn, 1)
+			newn = unitsRank[k].Trunc(newn)
+		}
+		if newn.After(n) || roll {
+			k = 0
+			n = newn
+		} else {
+			k++
 		}
 	}
-	t = t1
-
-	return t, nil
+	return n, nil
 }
 
 // NameToNumber convert a constraint mnemonic to an index
@@ -108,24 +105,6 @@ func (cc *CrontabConfig) SetGroupNumber(state State, i, fieldi int, a *CrontabCo
 		return &ErrorParse{Index: i, State: state}
 	}
 	return nil
-}
-
-func (cc CrontabConfig) GetFieldAtRank(i int) FieldConfig {
-	return cc.Fields[cc.fieldRank[i]]
-}
-
-func (cc CrontabConfig) GetCrontabFieldAtRank(ctd CrontabLine, i int) CrontabField {
-	return ctd[cc.fieldRank[i]]
-}
-
-// Less crontab config is sortable
-func (cc CrontabConfig) Less(i, j int) bool {
-	return cc.Fields[cc.fieldRank[i]].unit.Less(cc.Fields[cc.fieldRank[j]].unit)
-}
-
-// Swap crontab config is sortable
-func (cc *CrontabConfig) Swap(i, j int) {
-	cc.fieldRank[i], cc.fieldRank[j] = cc.fieldRank[j], cc.fieldRank[i]
 }
 
 // Len crontab config is sortable

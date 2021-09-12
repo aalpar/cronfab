@@ -17,7 +17,7 @@ func ExampleEveryFiveSeconds() {
 	fmt.Printf("%v\n", markers)
 
 	// run for 2 intervals
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 4; i++ {
 		t1, err := cronfab.SecondContabConfig.Next(markers, time.Now())
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
