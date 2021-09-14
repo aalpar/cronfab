@@ -1,9 +1,14 @@
 package cronfab
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"time"
+)
+
+var (
+	ErrMaxit = errors.New("maximum number of iterations met")
 )
 
 // CrontabConfig models the possible time specifications for a crontab entry
@@ -31,14 +36,19 @@ func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 	return q
 }
 
+const (
+	MAXIT = 20000
+)
+
 // Next return the next time after n as specified in the CrontabLine
 func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 	unitsRank := cc.Units
 	u := unitsRank[0]
 	n = u.Add(n, 1)
-	var roll bool
-	var newn time.Time
-	var k int
+	roll := false
+	newn := time.Time{}
+	k := 0
+	j := 0
 	for k < len(unitsRank) {
 		for k = 0; k < len(unitsRank); k++ {
 			u = unitsRank[k]
@@ -57,6 +67,10 @@ func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 				break
 			}
 		}
+		if j > MAXIT {
+			return n, ErrMaxit
+		}
+		j++
 		n = newn
 	}
 	return n, nil

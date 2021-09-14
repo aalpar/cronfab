@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestCeilMinues(t *testing.T) {
+func TestCeil(t *testing.T) {
 
 	fc1 := &FieldConfig{
 		unit: MinuteUnit{},
