@@ -2,6 +2,7 @@ package cronfab
 
 import (
 	"errors"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -24,21 +25,33 @@ func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 		Fields:     fields,
 		FieldUnits: map[string][]int{},
 	}
+	unms := map[string]struct{}{}
 	for i := 0; i < len(q.Fields); i++ {
 		f := fields[i]
 		u := f.unit
-		q.Units = append(q.Units, u)
-		SortUnits(q.Units)
 		unm := u.String()
 		q.FieldUnits[unm] = append(q.FieldUnits[unm], i)
+		_, ok := unms[unm]
+		if !ok {
+			unms[unm] = struct{}{}
+			q.Units = append(q.Units, u)
+		}
 	}
+	SortUnits(q.Units)
 	// fields are sorted in unit order
 	return q
 }
 
-const (
-	MAXIT = 20000
+var (
+	MaxIt = 20000
 )
+
+func init() {
+	x, _ := strconv.Atoi(os.Getenv("CRONFAB_MAXIT"))
+	if x != 0 {
+		MaxIt = x
+	}
+}
 
 // Next return the next time after n as specified in the CrontabLine
 func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
@@ -67,7 +80,7 @@ func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 				break
 			}
 		}
-		if j > MAXIT {
+		if j > MaxIt {
 			return n, ErrMaxit
 		}
 		j++

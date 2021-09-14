@@ -182,5 +182,6 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 		return CrontabLine{}, &ErrorParse{Index: i, State: state}
 	}
 	markers[fieldi][listi] = numbers
+	markers.Sort()
 	return markers, nil
 }

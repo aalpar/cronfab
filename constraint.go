@@ -1,12 +1,19 @@
 package cronfab
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrConstraintBoundariesReversed = errors.New("constraint boundaries reversed")
+)
 
 // CrontabConstraint a crontab constraint expressed as {min, max, step}.
 type CrontabConstraint [3]int
 
 func (cc CrontabConstraint) String() string {
-	return fmt.Sprintf("%d-%d/%d", cc[0], cc[1], cc[2])
+	return fmt.Sprintf("%d-%d/%d", cc.GetMin(), cc.GetMax(), cc.GetStep())
 }
 
 // GetMin get the minimum value of the range
@@ -22,6 +29,14 @@ func (cc CrontabConstraint) GetMax() int {
 // GetStep get the step value for the range.  1 if no step was specified.
 func (cc CrontabConstraint) GetStep() int {
 	return cc[2]
+}
+
+// Validate return an error if the constraint boundaries are invalid
+func (cc CrontabConstraint) Validate() error {
+	if cc[0] > cc[1] {
+		return ErrConstraintBoundariesReversed
+	}
+	return nil
 }
 
 // Ceil return the current or next greater value that satisfies the constraint.

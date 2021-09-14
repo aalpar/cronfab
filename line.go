@@ -28,3 +28,21 @@ func (cl *CrontabLine) SetField(i int, f CrontabField) {
 func (cl *CrontabLine) SetConstraint(i int, j int, c CrontabConstraint) {
 	(*cl)[i][j] = c
 }
+
+// Sort the crontab sub-elements chronologically
+func (cl CrontabLine) Sort() {
+	for i := range cl {
+		cl.GetField(i).Sort()
+	}
+}
+
+// Validate return an error if the crontab line is invalid
+func (cl CrontabLine) Validate() error {
+	for i := range cl {
+		err := cl.GetField(i).Validate()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

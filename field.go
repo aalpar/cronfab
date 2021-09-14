@@ -1,5 +1,14 @@
 package cronfab
 
+import (
+	"errors"
+	"sort"
+)
+
+var (
+	ErrOverlappingConstraint = errors.New("overlapping constraint")
+)
+
 // CrontabField a crontab field which is an array of constraints
 type CrontabField [][3]int
 
@@ -27,6 +36,35 @@ func (cf CrontabField) GetConstraint(i int) CrontabConstraint {
 // SetConstraint set the constraint at i
 func (cf *CrontabField) SetConstraint(i int, c CrontabConstraint) {
 	(*cf)[i] = c
+}
+
+// Sort sort the crontab constrains chronologically
+func (cf CrontabField) Sort() {
+	sort.Slice(cf, func(i, j int) bool {
+		return cf[i][0] < cf[j][0]
+	})
+}
+
+// Validate the constraints for overlap
+func (cf CrontabField) Validate() error {
+	for i := range cf {
+		err := cf.GetConstraint(i).Validate()
+		if err != nil {
+			return err
+		}
+		for j := range cf {
+			if i == j {
+				continue
+			}
+			if cf.GetConstraint(i).GetMin() >= cf.GetConstraint(j).GetMin() && cf.GetConstraint(i).GetMin() <= cf.GetConstraint(j).GetMax() {
+				return ErrOverlappingConstraint
+			}
+			if cf.GetConstraint(i).GetMax() >= cf.GetConstraint(j).GetMin() && cf.GetConstraint(i).GetMax() <= cf.GetConstraint(j).GetMax() {
+				return ErrOverlappingConstraint
+			}
+		}
+	}
+	return nil
 }
 
 func (cf CrontabField) Ceil(x int) (int, bool) {
