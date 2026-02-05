@@ -66,7 +66,7 @@ func TestParseCrontab(t *testing.T) {
 		tcase := tcases[i]
 
 		t.Run(tcase.in, func(t *testing.T) {
-			markers, err := DefaultContabConfig.ParseCronTab(tcase.in)
+			markers, err := DefaultCrontabConfig.ParseCronTab(tcase.in)
 			if err != nil && tcase.err != nil {
 				if !reflect.DeepEqual(err, tcase.err) {
 					t.Errorf("unexpected value: %v != %v", err, tcase.err)
@@ -208,7 +208,7 @@ func TestNext(t *testing.T) {
 
 	for _, tcase := range tcases {
 		ok := t.Run(tcase.in, func(t *testing.T) {
-			cf, err := DefaultContabConfig.ParseCronTab(tcase.in)
+			cf, err := DefaultCrontabConfig.ParseCronTab(tcase.in)
 			if err != nil {
 				t.Fatalf("err: %v", err)
 			}
@@ -220,7 +220,7 @@ func TestNext(t *testing.T) {
 			}
 			t.Logf("t0 = %q %s", t0.Format(time.RFC3339), t0.Weekday())
 
-			t1, err := DefaultContabConfig.Next(cf, t0)
+			t1, err := DefaultCrontabConfig.Next(cf, t0)
 			if err != nil {
 				t.Fatalf("err: %v", err)
 			}
@@ -423,7 +423,7 @@ func TestNextes(t *testing.T) {
 
 	for _, tcase := range tcases {
 		t.Run(tcase.in, func(t *testing.T) {
-			cf, err := DefaultContabConfig.ParseCronTab(tcase.in)
+			cf, err := DefaultCrontabConfig.ParseCronTab(tcase.in)
 			if err != nil {
 				t.Fatal("err: ", err)
 			}
@@ -461,7 +461,7 @@ func TestNextes(t *testing.T) {
 					}
 				}
 
-				t0, err = DefaultContabConfig.Next(cf, t0)
+				t0, err = DefaultCrontabConfig.Next(cf, t0)
 				if err != nil {
 					t.Fatal("err: ", err)
 				}

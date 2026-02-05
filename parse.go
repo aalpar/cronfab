@@ -32,7 +32,7 @@ func StateString(x State) string {
 	case StateExpectEndRangeName:
 		return "expecting end-range name"
 	case StateInEndRangeName:
-		return "int end-range name"
+		return "in end-range name"
 	case StateExpectEndRangeNumber:
 		return "expecting end-range number"
 	case StateInEndRangeNumber:
@@ -57,7 +57,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 	fieldi := 0
 	listi := 0
 	ss := s
-	numbers := CrontabConstraint([3]int{cc.Fields[fieldi].min, cc.Fields[fieldi].max, 1})
+	numbers := CrontabConstraint([3]int{cc.Fields[fieldi].Min, cc.Fields[fieldi].Max, 1})
 	markers := CrontabLine{{{}}}
 	state := StateExpectSplatOrNumberOrName
 	r, n := utf8.DecodeRuneInString(ss)
@@ -94,7 +94,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 			}
 		} else if r == '*' {
 			if state == StateExpectSplatOrNumberOrName {
-				numbers = CrontabConstraint([3]int{cc.Fields[fieldi].min, cc.Fields[fieldi].max, 1})
+				numbers = CrontabConstraint([3]int{cc.Fields[fieldi].Min, cc.Fields[fieldi].Max, 1})
 				state = StateExpectStep
 			} else {
 				return CrontabLine{}, &ErrorParse{Index: i, State: state}
@@ -106,7 +106,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 					return CrontabLine{}, err
 				}
 				state = StateExpectEndRangeNumber
-			} else if state == StateInName && len(cc.Fields[fieldi].rangeNames) > 0 {
+			} else if state == StateInName && len(cc.Fields[fieldi].RangeNames) > 0 {
 				err := cc.SetGroupName(state, i, fieldi, &numbers, s[j:i])
 				if err != nil {
 					return CrontabLine{}, err
@@ -124,7 +124,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 					return CrontabLine{}, err
 				}
 				state = StateExpectStepNumber
-			} else if state == StateInEndRangeName && len(cc.Fields[fieldi].rangeNames) > 0 {
+			} else if state == StateInEndRangeName && len(cc.Fields[fieldi].RangeNames) > 0 {
 				err := cc.SetGroupName(state, i, fieldi, &numbers, s[j:i])
 				if err != nil {
 					return CrontabLine{}, err
@@ -140,7 +140,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 				if err != nil {
 					return CrontabLine{}, err
 				}
-			} else if state == StateInName && len(cc.Fields[fieldi].rangeNames) > 0 {
+			} else if (state == StateInEndRangeName || state == StateInName) && len(cc.Fields[fieldi].RangeNames) > 0 {
 				err := cc.SetGroupName(state, i, fieldi, &numbers, s[j:i])
 				if err != nil {
 					return CrontabLine{}, err
@@ -158,7 +158,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 				fieldi++
 				listi = 0
 			}
-			numbers = CrontabConstraint([3]int{cc.Fields[fieldi].min, cc.Fields[fieldi].max, 1})
+			numbers = CrontabConstraint([3]int{cc.Fields[fieldi].Min, cc.Fields[fieldi].Max, 1})
 			state = StateExpectSplatOrNumberOrName
 		} else {
 			return CrontabLine{}, &ErrorParse{Index: i, State: state}
@@ -173,7 +173,7 @@ func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 		if err != nil {
 			return CrontabLine{}, err
 		}
-	} else if (state == StateInEndRangeName || state == StateInName) && len(cc.Fields[fieldi].rangeNames) > 0 {
+	} else if (state == StateInEndRangeName || state == StateInName) && len(cc.Fields[fieldi].RangeNames) > 0 {
 		err := cc.SetGroupName(state, i, fieldi, &numbers, s[j:i])
 		if err != nil {
 			return CrontabLine{}, err

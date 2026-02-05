@@ -9,11 +9,11 @@ import (
 func TestCeil(t *testing.T) {
 
 	fc1 := &FieldConfig{
-		unit: MinuteUnit{},
-		name: "minute",
-		min:  0,
-		max:  59,
-		getIndex: func(t time.Time) int {
+		Unit: MinuteUnit{},
+		Name: "minute",
+		Min:  0,
+		Max:  59,
+		GetIndex: func(t time.Time) int {
 			return t.Minute()
 		},
 	}

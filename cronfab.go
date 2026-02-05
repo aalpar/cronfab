@@ -139,7 +139,7 @@ func (MonthUnit) Less(u Unit) bool {
 }
 
 func (MonthUnit) Trunc(t time.Time) time.Time {
-	return time.Date(t.Year(), t.Month(), 0, 0, 0, 0, 0, t.Location())
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
 }
 
 // YearUnit units in years
@@ -165,120 +165,120 @@ func (YearUnit) Trunc(t time.Time) time.Time {
 	return time.Date(t.Year(), 0, 0, 0, 0, 0, 0, t.Location())
 }
 
-var DefaultContabConfig = NewCrontabConfig([]FieldConfig{
+var DefaultCrontabConfig = MustCrontabConfig([]FieldConfig{
 	{
-		unit: MinuteUnit{},
-		name: "minute",
-		min:  0,
-		max:  59,
-		getIndex: func(t time.Time) int {
+		Unit: MinuteUnit{},
+		Name: "minute",
+		Min:  0,
+		Max:  59,
+		GetIndex: func(t time.Time) int {
 			return t.Minute()
 		},
 	},
 	{
-		unit: HourUnit{},
-		name: "hour",
-		min:  0,
-		max:  23,
-		getIndex: func(t time.Time) int {
+		Unit: HourUnit{},
+		Name: "hour",
+		Min:  0,
+		Max:  23,
+		GetIndex: func(t time.Time) int {
 			return t.Hour()
 		},
 	},
 	{
-		unit: DayUnit{},
-		name: "day of month",
-		min:  1,
-		max:  31,
-		getIndex: func(t time.Time) int {
+		Unit: DayUnit{},
+		Name: "day of month",
+		Min:  1,
+		Max:  31,
+		GetIndex: func(t time.Time) int {
 			return t.Day()
 		},
 	},
 	{
-		unit:       MonthUnit{},
-		name:       "month",
-		rangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
-		min:        1,
-		max:        12,
-		getIndex: func(t time.Time) int {
+		Unit:       MonthUnit{},
+		Name:       "month",
+		RangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
+		Min:        1,
+		Max:        12,
+		GetIndex: func(t time.Time) int {
 			return int(t.Month())
 		},
 	},
 	{
-		unit:       DayUnit{},
-		name:       "day of week",
-		rangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
-		min:        0,
-		max:        6,
-		getIndex: func(t time.Time) int {
+		Unit:       DayUnit{},
+		Name:       "day of week",
+		RangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
+		Min:        0,
+		Max:        6,
+		GetIndex: func(t time.Time) int {
 			return int(t.Weekday())
 		},
 	},
 })
 
-var SecondContabConfig = NewCrontabConfig([]FieldConfig{
+var SecondCrontabConfig = MustCrontabConfig([]FieldConfig{
 	{
-		unit: SecondUnit{},
-		name: "second",
-		min:  0,
-		max:  59,
-		getIndex: func(t time.Time) int {
+		Unit: SecondUnit{},
+		Name: "second",
+		Min:  0,
+		Max:  59,
+		GetIndex: func(t time.Time) int {
 			return t.Second()
 		},
 	},
 	{
-		unit: MinuteUnit{},
-		name: "minute",
-		min:  0,
-		max:  59,
-		getIndex: func(t time.Time) int {
+		Unit: MinuteUnit{},
+		Name: "minute",
+		Min:  0,
+		Max:  59,
+		GetIndex: func(t time.Time) int {
 			return t.Minute()
 		},
 	},
 	{
-		unit: HourUnit{},
-		name: "hour",
-		min:  0,
-		max:  23,
-		getIndex: func(t time.Time) int {
+		Unit: HourUnit{},
+		Name: "hour",
+		Min:  0,
+		Max:  23,
+		GetIndex: func(t time.Time) int {
 			return t.Hour()
 		},
 	},
 	{
-		unit: DayUnit{},
-		name: "day of month",
-		min:  1,
-		max:  31,
-		getIndex: func(t time.Time) int {
+		Unit: DayUnit{},
+		Name: "day of month",
+		Min:  1,
+		Max:  31,
+		GetIndex: func(t time.Time) int {
 			return t.Day()
 		},
 	},
 	{
-		unit: WeekOfMonth{},
-		name: "week of month",
-		min:  1,
-		max:  5,
-		getIndex: func(t time.Time) int {
+		Unit: WeekOfMonth{},
+		Name: "week of month",
+		Min:  1,
+		Max:  5,
+		GetIndex: func(t time.Time) int {
 			q := t.Day() + (6 - int(t.Weekday()))
 			return (q / 7) + 1
 		},
 	},
 	{
-		unit:       MonthUnit{},
-		name:       "month",
-		rangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
-		min:        1,
-		max:        12,
-		getIndex: func(t time.Time) int {
+		Unit:       MonthUnit{},
+		Name:       "month",
+		RangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
+		Min:        1,
+		Max:        12,
+		GetIndex: func(t time.Time) int {
 			return int(t.Month())
 		},
 	},
 	{
-		unit:       DayUnit{},
-		name:       "day of week",
-		rangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
-		min:        0,
-		max:        6,
-		getIndex: func(t time.Time) int {
+		Unit:       DayUnit{},
+		Name:       "day of week",
+		RangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
+		Min:        0,
+		Max:        6,
+		GetIndex: func(t time.Time) int {
 			return int(t.Weekday())
 		},
 	},

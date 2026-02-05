@@ -2,6 +2,7 @@ package cronfab
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -19,8 +20,26 @@ type CrontabConfig struct {
 	Units      []Unit
 }
 
-// NewCrontabConfig return a new crontab config for the supplied filed configs
-func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
+// NewCrontabConfig returns a new crontab config for the supplied field configs.
+// It validates each field and returns an error if any field is misconfigured.
+func NewCrontabConfig(fields []FieldConfig) (*CrontabConfig, error) {
+	if len(fields) == 0 {
+		return nil, errors.New("cronfab: at least one field is required")
+	}
+	for i, f := range fields {
+		if f.Unit == nil {
+			return nil, fmt.Errorf("cronfab: field %d: Unit is nil", i)
+		}
+		if f.Name == "" {
+			return nil, fmt.Errorf("cronfab: field %d: Name is empty", i)
+		}
+		if f.GetIndex == nil {
+			return nil, fmt.Errorf("cronfab: field %d (%s): GetIndex is nil", i, f.Name)
+		}
+		if f.Min > f.Max {
+			return nil, fmt.Errorf("cronfab: field %d (%s): Min (%d) > Max (%d)", i, f.Name, f.Min, f.Max)
+		}
+	}
 	q := &CrontabConfig{
 		Fields:     fields,
 		FieldUnits: map[string][]int{},
@@ -28,7 +47,7 @@ func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 	unms := map[string]struct{}{}
 	for i := 0; i < len(q.Fields); i++ {
 		f := fields[i]
-		u := f.unit
+		u := f.Unit
 		unm := u.String()
 		q.FieldUnits[unm] = append(q.FieldUnits[unm], i)
 		_, ok := unms[unm]
@@ -38,8 +57,17 @@ func NewCrontabConfig(fields []FieldConfig) *CrontabConfig {
 		}
 	}
 	SortUnits(q.Units)
-	// fields are sorted in unit order
-	return q
+	return q, nil
+}
+
+// MustCrontabConfig is like NewCrontabConfig but panics on error.
+// Use this for package-level config vars where the input is known-good.
+func MustCrontabConfig(fields []FieldConfig) *CrontabConfig {
+	cc, err := NewCrontabConfig(fields)
+	if err != nil {
+		panic(err)
+	}
+	return cc
 }
 
 var (
@@ -47,8 +75,16 @@ var (
 )
 
 func init() {
-	x, _ := strconv.Atoi(os.Getenv("CRONFAB_MAXIT"))
-	if x != 0 {
+	s := os.Getenv("CRONFAB_MAXIT")
+	if s == "" {
+		return
+	}
+	x, err := strconv.Atoi(s)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cronfab: invalid CRONFAB_MAXIT value %q: %v\n", s, err)
+		return
+	}
+	if x > 0 {
 		MaxIt = x
 	}
 }
@@ -91,14 +127,14 @@ func (cc *CrontabConfig) Next(ctl CrontabLine, n time.Time) (time.Time, error) {
 
 // NameToNumber convert a constraint mnemonic to an index
 func (cc *CrontabConfig) NameToNumber(i int, s string) int {
-	return lookupNameIndex(cc.Fields[i].rangeNames, s)
+	return lookupNameIndex(cc.Fields[i].RangeNames, s)
 }
 
 // SetGroupName convert the group member name to an index for field fieldi
 func (cc *CrontabConfig) SetGroupName(state State, i, fieldi int, a *CrontabConstraint, s string) error {
-	k := cc.NameToNumber(fieldi, s) + cc.Fields[fieldi].min
-	if k < cc.Fields[fieldi].min || k > cc.Fields[fieldi].max {
-		return &ErrorBadIndex{FieldName: cc.Fields[fieldi].name, Value: k}
+	k := cc.NameToNumber(fieldi, s) + cc.Fields[fieldi].Min
+	if k < cc.Fields[fieldi].Min || k > cc.Fields[fieldi].Max {
+		return &ErrorBadIndex{FieldName: cc.Fields[fieldi].Name, Value: k}
 	}
 	if state == StateInName {
 		*a = [3]int{k, k, 1}
@@ -116,8 +152,8 @@ func (cc *CrontabConfig) SetGroupNumber(state State, i, fieldi int, a *CrontabCo
 	if err != nil {
 		return err
 	}
-	if k < cc.Fields[fieldi].min || k > cc.Fields[fieldi].max {
-		return &ErrorBadIndex{FieldName: cc.Fields[fieldi].name, Value: k}
+	if k < cc.Fields[fieldi].Min || k > cc.Fields[fieldi].Max {
+		return &ErrorBadIndex{FieldName: cc.Fields[fieldi].Name, Value: k}
 	}
 	if state == StateInNumber {
 		*a = [3]int{k, k, 1}
@@ -125,7 +161,7 @@ func (cc *CrontabConfig) SetGroupNumber(state State, i, fieldi int, a *CrontabCo
 		(*a)[1] = k
 	} else if state == StateInStepNumber {
 		if k < 1 {
-			return &ErrorBadIndex{FieldName: cc.Fields[fieldi].name, Value: k}
+			return &ErrorBadIndex{FieldName: cc.Fields[fieldi].Name, Value: k}
 		}
 		(*a)[2] = k
 	} else {
