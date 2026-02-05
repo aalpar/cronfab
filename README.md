@@ -3,7 +3,7 @@ Cronfab
 
 Cronfab is a crontab time-and-date specification parser and processor with a configurable calendar.
 
-Unlike [robfig/cron](https://github.com/robfig/cron), cronfab exposes an extensible field system: you can define custom calendar fields (e.g. week-of-month, moon phase) with named ranges and arbitrary units — no forking required.
+For projects that need extensibility beyond standard cron libraries like [robfig/cron](https://github.com/robfig/cron), cronfab exposes a configurable field system: define custom calendar fields (e.g. week-of-month, moon phase) with named ranges and arbitrary units — no forking required.
 
 All the standard crontab features are supported:
 - units may be specified by number or name (with prefix matching — `jan`, `mon`, etc.)
