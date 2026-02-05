@@ -890,3 +890,65 @@ func TestCrontabLine_SetConstraint(t *testing.T) {
 		t.Errorf("SetConstraint failed")
 	}
 }
+
+// --- Alias tests ---
+
+func TestParseCrontab_Alias(t *testing.T) {
+	cases := []struct {
+		alias  string
+		expect string
+	}{
+		{"@yearly", "0 0 1 1 *"},
+		{"@annually", "0 0 1 1 *"},
+		{"@monthly", "0 0 1 * *"},
+		{"@weekly", "0 0 * * 0"},
+		{"@daily", "0 0 * * *"},
+		{"@midnight", "0 0 * * *"},
+		{"@hourly", "0 * * * *"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.alias, func(t *testing.T) {
+			cl, err := DefaultCrontabConfig.ParseCronTab(tc.alias)
+			if err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			direct, err := DefaultCrontabConfig.ParseCronTab(tc.expect)
+			if err != nil {
+				t.Fatalf("err: %v", err)
+			}
+			if cl.String() != direct.String() {
+				t.Errorf("%s: got %v, want %v", tc.alias, cl, direct)
+			}
+		})
+	}
+}
+
+func TestParseCrontab_AliasSecondConfig(t *testing.T) {
+	cl, err := SecondCrontabConfig.ParseCronTab("@daily")
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if len(cl) != 7 {
+		t.Fatalf("expected 7 fields, got %d", len(cl))
+	}
+}
+
+func TestParseCrontab_AliasUnknown(t *testing.T) {
+	_, err := DefaultCrontabConfig.ParseCronTab("@bogus")
+	if err == nil {
+		t.Error("expected error for unknown alias")
+	}
+}
+
+func TestParseCrontab_AliasNilMap(t *testing.T) {
+	// Config with no aliases — '@' should fall through to parser error
+	cc := &CrontabConfig{
+		Fields:     DefaultCrontabConfig.Fields,
+		FieldUnits: DefaultCrontabConfig.FieldUnits,
+		Units:      DefaultCrontabConfig.Units,
+	}
+	_, err := cc.ParseCronTab("@daily")
+	if err == nil {
+		t.Error("expected error when aliases map is nil")
+	}
+}

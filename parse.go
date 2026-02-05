@@ -1,6 +1,7 @@
 package cronfab
 
 import (
+	"fmt"
 	"unicode"
 	"unicode/utf8"
 )
@@ -47,10 +48,18 @@ func StateString(x State) string {
 	return "unknown"
 }
 
-// ParseCronTab parses a crontab string using the crontab configuration
+// ParseCronTab parses a crontab string using the crontab configuration.
+// If the string starts with '@', it is looked up in the config's Aliases map.
 func (cc *CrontabConfig) ParseCronTab(s string) (CrontabLine, error) {
 	if len(s) == 0 {
 		return CrontabLine{}, nil
+	}
+	if s[0] == '@' && cc.Aliases != nil {
+		expr, ok := cc.Aliases[s]
+		if !ok {
+			return CrontabLine{}, fmt.Errorf("unknown alias %q", s)
+		}
+		return cc.ParseCronTab(expr)
 	}
 	i := 0
 	j := 0

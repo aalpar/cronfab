@@ -18,6 +18,7 @@ type CrontabConfig struct {
 	Fields     []FieldConfig
 	FieldUnits map[string][]int
 	Units      []Unit
+	Aliases    map[string]string
 }
 
 // NewCrontabConfig returns a new crontab config for the supplied field configs.
