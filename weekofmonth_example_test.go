@@ -10,7 +10,7 @@ import (
 
 // crontab event at second saturday of every month
 func ExampleWeekOfMonth() {
-	markers, err := cronfab.SecondContabConfig.ParseCronTab("1 1 1 * 2 * sat")
+	markers, err := cronfab.SecondCrontabConfig.ParseCronTab("1 1 1 * 2 * sat")
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 	}
@@ -19,7 +19,7 @@ func ExampleWeekOfMonth() {
 	t1 := time.Now()
 	// run for 4 intervals
 	for i := 0; i < 4; i++ {
-		t1, err = cronfab.SecondContabConfig.Next(markers, t1)
+		t1, err = cronfab.SecondCrontabConfig.Next(markers, t1)
 		if err != nil {
 			fmt.Printf("err: %v\n", err)
 			return

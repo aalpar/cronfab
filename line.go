@@ -1,6 +1,6 @@
 package cronfab
 
-// CrontabLine represents the parsed user supplied contab specification
+// CrontabLine represents the parsed user supplied crontab specification
 type CrontabLine [][][3]int
 
 func (cl CrontabLine) String() string {

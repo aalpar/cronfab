@@ -3,43 +3,60 @@ Cronfab
 
 Cronfab is a crontab time-and-date specification parser and processor with a configurable calendar.
 
-All the unix standard features are supported:
+Unlike [robfig/cron](https://github.com/robfig/cron), cronfab exposes an extensible field system: you can define custom calendar fields (e.g. week-of-month, moon phase) with named ranges and arbitrary units — no forking required.
+
+All the standard crontab features are supported:
 - units may be specified by number or name
-- lists and ranges are suppored
+- lists and ranges are supported
 - step values are supported
 
-Cronfab does not support shell command execution, or specification nicknames (such as `@reboot`, `@annually`, `@yearly`, `@monthly`, `@weekly`, `@daily` or `@hourly`).
+Cronfab does not support shell command execution or specification nicknames (`@reboot`, `@daily`, etc.).
 
-Parsers for classic 6-field (year, month, day of month, day of week, hour of day, minute or hour) and extended, 8 field, (6-field version extended to second of minute and week of month) are provided.  Other calendars and/or periods may be added.
+Built-in Configs
+----------------
 
-Examples and Tests are the best source of documentation.
+- **`DefaultCrontabConfig`** — classic 5-field: minute, hour, day-of-month, month, day-of-week
+- **`SecondCrontabConfig`** — 7-field: second, minute, hour, day-of-month, week-of-month, month, day-of-week
 
 Example
 -------
 
-The example below outputs the parsed crontab entry and then runs for 20s, producing output every 5s.  The example demonstrates generating timeseries for a parsed crontab.
-
-```
-// crontab event at every 5 second interval
-func ExampleEveryFiveSeconds() {
-	markers, err := cronfab.SecondContabConfig.ParseCronTab("*/5 * * * * * *")
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-	}
-	fmt.Printf("%v\n", markers)
-
-	// run for 4 intervals
-	for i := 0; i < 4; i++ {
-		t1, err := cronfab.SecondContabConfig.Next(markers, time.Now())
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			return
-		}
-		dt := t1.Sub(time.Now())
-		time.Sleep(dt)
-		fmt.Fprintf(os.Stderr, "time: %v\n", time.Now())
-	}
-
-	// Output: 0-59/5 0-59/1 0-23/1 1-31/1 1-5/1 1-12/1 0-6/1
+```go
+markers, err := cronfab.SecondCrontabConfig.ParseCronTab("*/5 * * * * * *")
+if err != nil {
+	log.Fatal(err)
 }
+
+next, err := cronfab.SecondCrontabConfig.Next(markers, time.Now())
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(next)
 ```
+
+Custom Calendars
+----------------
+
+`FieldConfig` fields are exported, so any package can construct its own calendar by implementing the `Unit` interface and calling `NewCrontabConfig`:
+
+```go
+config, err := cronfab.NewCrontabConfig([]cronfab.FieldConfig{
+	{
+		Unit:     cronfab.HourUnit{},
+		Name:     "hour",
+		Min:      0,
+		Max:      23,
+		GetIndex: func(t time.Time) int { return t.Hour() },
+	},
+	{
+		Unit:       MoonPhaseUnit{},
+		Name:       "moon phase",
+		RangeNames: []string{"new", "waxingcrescent", "firstquarter", "waxinggibbous", "full", "waninggibbous", "thirdquarter", "waningcrescent"},
+		Min:        0,
+		Max:        7,
+		GetIndex:   moonPhaseIndex,
+	},
+})
+```
+
+A full working example is in [examples/lunar](examples/lunar).

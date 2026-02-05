@@ -73,44 +73,70 @@ func (testYearUnit) Trunc(t time.Time) time.Time {
 }
 
 func TestNewCrontabConfig(t *testing.T) {
-	var testContabConfig = NewCrontabConfig([]FieldConfig{
+	testCrontabConfig, err := NewCrontabConfig([]FieldConfig{
 		{
-			unit: testDayUnit{},
-			name: "day of month",
-			min:  1,
-			max:  31,
-			getIndex: func(t time.Time) int {
+			Unit: testDayUnit{},
+			Name: "day of month",
+			Min:  1,
+			Max:  31,
+			GetIndex: func(t time.Time) int {
 				return t.Day()
 			},
 		},
 		{
-			unit:       testMonthUnit{},
-			name:       "month",
-			rangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
-			min:        1,
-			max:        12,
-			getIndex: func(t time.Time) int {
+			Unit:       testMonthUnit{},
+			Name:       "month",
+			RangeNames: []string{"january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"},
+			Min:        1,
+			Max:        12,
+			GetIndex: func(t time.Time) int {
 				return int(t.Month())
 			},
 		},
 		{
-			unit:       testDayUnit{},
-			name:       "day of week",
-			rangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
-			min:        0,
-			max:        6,
-			getIndex: func(t time.Time) int {
+			Unit:       testDayUnit{},
+			Name:       "day of week",
+			RangeNames: []string{"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"},
+			Min:        0,
+			Max:        6,
+			GetIndex: func(t time.Time) int {
 				return int(t.Weekday())
 			},
 		},
 	})
-	if len(testContabConfig.Units) != 2 {
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	if len(testCrontabConfig.Units) != 2 {
 		t.Fatalf("unexpected value.")
 	}
-	if testContabConfig.Units[0] != Unit(testDayUnit{}) {
+	if testCrontabConfig.Units[0] != Unit(testDayUnit{}) {
 		t.Fatalf("unexpected value.")
 	}
-	if testContabConfig.Units[1] != Unit(testMonthUnit{}) {
+	if testCrontabConfig.Units[1] != Unit(testMonthUnit{}) {
 		t.Fatalf("unexpected value.")
+	}
+}
+
+func TestNewCrontabConfig_Validation(t *testing.T) {
+	valid := func(t time.Time) int { return 0 }
+
+	cases := []struct {
+		name   string
+		fields []FieldConfig
+	}{
+		{"no fields", nil},
+		{"nil Unit", []FieldConfig{{Unit: nil, Name: "x", Min: 0, Max: 1, GetIndex: valid}}},
+		{"empty Name", []FieldConfig{{Unit: testDayUnit{}, Name: "", Min: 0, Max: 1, GetIndex: valid}}},
+		{"nil GetIndex", []FieldConfig{{Unit: testDayUnit{}, Name: "x", Min: 0, Max: 1, GetIndex: nil}}},
+		{"Min > Max", []FieldConfig{{Unit: testDayUnit{}, Name: "x", Min: 10, Max: 5, GetIndex: valid}}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := NewCrontabConfig(tc.fields)
+			if err == nil {
+				t.Errorf("expected error for %s", tc.name)
+			}
+		})
 	}
 }
