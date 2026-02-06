@@ -1,0 +1,21 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - run: go vet ./...
+      - run: go test -cover ./...
+      - name: Notify Go module proxy
+        env:
+          GOPROXY: https://proxy.golang.org
+        run: go list -m "github.com/aalpar/cronfab@${GITHUB_REF_NAME}"
